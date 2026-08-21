@@ -46,12 +46,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamablenew.navigation.Destination
+import com.example.roamablenew.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenu() {
     val navController = rememberNavController()
+    val userViewModel: UserViewModel = viewModel()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController = navController) }
@@ -66,7 +69,9 @@ fun MainMenu() {
             composable(Destination.MAP.route) { MapScreen() }
             composable(Destination.HELPLINE.route) { HelplineScreen() }
             composable(Destination.SOS.route) { SosScreen() }
-            composable(Destination.PROFILE.route) { ProfileScreen() }
+            composable(Destination.PROFILE.route) { ProfileScreen(navController, userViewModel) }
+            composable(Destination.LOGIN.route) { LoginScreen(navController, userViewModel) }
+            composable(Destination.REGISTER.route) { RegisterScreen(navController, userViewModel) }
         }
     }
 }
@@ -188,8 +193,11 @@ fun BottomNavBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Define which destinations should be in the bottom bar
+    val bottomTabs = listOf(Destination.MAP, Destination.HELPLINE, Destination.SOS, Destination.PROFILE)
+
     NavigationBar {
-        Destination.entries.forEach { destination ->
+        bottomTabs.forEach { destination ->
             if (destination == Destination.SOS) {
                 // Oversized, styled SOS item
                 NavigationBarItem(
@@ -253,10 +261,5 @@ fun SosScreen() {
 
 @Composable
 fun HelplineScreen() {
-    Text("Coming Soon")
-}
-
-@Composable
-fun ProfileScreen() {
     Text("Coming Soon")
 }
