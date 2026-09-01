@@ -16,8 +16,6 @@ import com.example.roamablenew.viewmodel.UserViewModel
 fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    
-    // State to track if login failed
     var loginError by remember { mutableStateOf("") }
 
     Column(
@@ -67,10 +65,12 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
         
         Button(
             onClick = {
-                if (viewModel.login(email, password)) {
-                    navController.navigate(Destination.PROFILE.route)
-                } else {
-                    loginError = "Invalid email or password"
+                viewModel.login(email, password) { success ->
+                    if (success) {
+                        navController.navigate(Destination.PROFILE.route)
+                    } else {
+                        loginError = "Invalid email or password"
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()

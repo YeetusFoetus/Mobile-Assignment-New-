@@ -106,8 +106,11 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
 
                 if (!nameError && !emailError && !passwordError && !disabilityError) {
                     val newUser = User(name, email, password, disability)
-                    viewModel.register(newUser)
-                    navController.navigate(Destination.PROFILE.route)
+                    viewModel.register(newUser) { success ->
+                        if (success) {
+                            navController.navigate(Destination.PROFILE.route)
+                        }
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
