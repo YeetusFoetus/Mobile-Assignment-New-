@@ -36,5 +36,17 @@ enum class Destination(
         label = "Profile",
         icon = Icons.Default.Person,
         contentDescription = "Profile Screen"
+    ),
+    LOGIN(
+        route = "login",
+        label = "Login",
+        icon = Icons.Default.Person,
+        contentDescription = "Login Screen"
+    ),
+    REGISTER(
+        route = "register",
+        label = "Register",
+        icon = Icons.Default.Person,
+        contentDescription = "Register Screen"
     )
 }
