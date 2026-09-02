@@ -13,8 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-
-# Android Studio / IntelliJ files
 .idea/
-.gradle/
-build/
