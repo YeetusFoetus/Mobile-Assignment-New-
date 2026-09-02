@@ -109,16 +109,16 @@ fun ViewProfileScreen(
             contentDescription = null,
             modifier = Modifier.size(100.dp)
         )
-        Text(text = user.name, fontSize = 24.sp)
+        Text(text = user.name ?: "Unknown", fontSize = 24.sp)
         
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
         
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Email: ${user.email}", fontSize = 18.sp)
+            Text(text = "Email: ${user.email ?: "N/A"}", fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Disability Type: ${user.disability}", fontSize = 18.sp)
+            Text(text = "Disability Type: ${user.disability ?: "N/A"}", fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            val displayAddress = if (user.address.isEmpty()) "No Set" else user.address
+            val displayAddress = if (user.address.isNullOrEmpty()) "No Set" else user.address
             Text(text = "Home Address: $displayAddress", fontSize = 18.sp)
         }
 
@@ -174,9 +174,9 @@ fun EditProfileScreen(
     onSave: (User) -> Unit,
     onCancel: () -> Unit
 ) {
-    var name by remember { mutableStateOf(user.name) }
-    var disability by remember { mutableStateOf(user.disability) }
-    var address by remember { mutableStateOf(user.address) }
+    var name by remember { mutableStateOf(user.name ?: "") }
+    var disability by remember { mutableStateOf(user.disability ?: "") }
+    var address by remember { mutableStateOf(user.address ?: "") }
 
     Column(
         modifier = Modifier
