@@ -20,8 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.NavigationBar
@@ -32,6 +35,9 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +55,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamablenew.navigation.Destination
 import com.example.roamablenew.viewmodel.UserViewModel
+import com.example.roamablenew.ui.screens.MapMarker
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,26 +89,44 @@ fun MainMenu() {
 fun MapScreen() {
     val usernameState = rememberTextFieldState(initialText = "")
     val fruits = listOf("Apple", "Banana", "Cherry")
+    var mapView by remember { mutableStateOf<MapView?>(null) }
+
+    val malaysiaCenter = remember { GeoPoint(4.2105, 101.9758) }
+    val malaysiaZoom = 6.0
 
     Box(modifier = Modifier.fillMaxSize()) {
-        OsmMapView(modifier = Modifier.fillMaxSize())
+        OsmMapView(
+            markers = listOf(
+                MapMarker("Puchong", 2.9823, 101.5678),
+                MapMarker("Cyberjaya", 2.9213, 101.6559),
+                MapMarker("Cheras", 3.1073, 101.7414),
+                MapMarker("Kajang", 2.9931, 101.7874)
+            ),
+            onMapReady = { mapView = it }
+        )
 
         Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                SimpleSearchBar(
-                    usernameState,
-                    { query -> },
-                    fruits,
-                    false,
-                    {}
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                TagsRow()
-            }
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SimpleSearchBar(usernameState, { query -> }, fruits, false, {})
+            Spacer(modifier = Modifier.height(16.dp))
+            TagsRow()
+        }
+
+        FloatingActionButton(
+            onClick = {
+                mapView?.controller?.setZoom(malaysiaZoom)
+                mapView?.controller?.animateTo(malaysiaCenter)
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.MyLocation, contentDescription = "Recenter to Malaysia")
         }
     }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
