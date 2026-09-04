@@ -3,6 +3,7 @@ package com.example.roamablenew.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,9 +26,9 @@ data class MapMarker(
 @Composable
 fun OsmMapView(
     modifier: Modifier = Modifier,
-    latitude: Double = 51.5074,
-    longitude: Double = -0.1278,
-    zoomLevel: Double = 13.0,
+    latitude: Double = 4.2105,
+    longitude: Double = 101.9758,
+    zoomLevel: Double = 6.0,
     markers: List<MapMarker> = emptyList(),
     onMapReady: (MapView) -> Unit = {}
 ) {
@@ -39,39 +40,34 @@ fun OsmMapView(
         onDispose { mapView.onDetach() }
     }
 
+    LaunchedEffect(markers) {
+        if (!hasCentered && markers.isNotEmpty()) {
+            mapView.post {
+                if (mapView.width > 0 && mapView.height > 0) {
+                    val bounds = org.osmdroid.util.BoundingBox.fromGeoPoints(
+                        markers.map { GeoPoint(it.latitude, it.longitude) }
+                    )
+                    mapView.zoomToBoundingBox(bounds, false, 100)
+                    hasCentered = true
+                }
+            }
+        }
+    }
+
     AndroidView(
         modifier = modifier.fillMaxSize(),
-        factory = { ctx ->
-            org.osmdroid.config.Configuration.getInstance().userAgentValue = ctx.packageName
-            org.osmdroid.config.Configuration.getInstance().osmdroidTileCache = ctx.cacheDir
-
+        factory = {
             mapView.apply {
                 setTileSource(StadiaTileSource(apiKey = "9f77721b-c275-46a1-9c33-d8ba737c9e9f"))
                 setMultiTouchControls(true)
-                controller.setZoom(zoomLevel)
-                controller.setCenter(GeoPoint(latitude, longitude))
                 setHorizontalMapRepetitionEnabled(false)
                 setVerticalMapRepetitionEnabled(false)
                 minZoomLevel = 5.0
+                controller.setZoom(zoomLevel)
+                controller.setCenter(GeoPoint(latitude, longitude)) // shown briefly while loading
             }.also { onMapReady(it) }
         },
         update = { view ->
-            if (!hasCentered) {
-                if (markers.isNotEmpty()) {
-                    view.post {
-                        if (view.width > 0 && view.height > 0) {
-                            val bounds = org.osmdroid.util.BoundingBox.fromGeoPoints(
-                                markers.map { GeoPoint(it.latitude, it.longitude) }
-                            )
-                            view.zoomToBoundingBox(bounds, false, 100)
-                        }
-                    }
-                } else {
-                    view.controller.setCenter(GeoPoint(latitude, longitude))
-                }
-                hasCentered = true
-            }
-
             view.overlays.clear()
             markers.forEach { marker ->
                 val osmMarker = Marker(view).apply {
