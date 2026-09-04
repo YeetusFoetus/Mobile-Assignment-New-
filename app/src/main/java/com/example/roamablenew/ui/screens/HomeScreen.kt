@@ -1,5 +1,6 @@
 package com.example.roamablenew.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,11 +55,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.roamablenew.data.Location
+import com.example.roamablenew.data.LocationRepository
 import com.example.roamablenew.navigation.Destination
 import com.example.roamablenew.viewmodel.UserViewModel
 import com.example.roamablenew.ui.screens.MapMarker
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,14 +99,27 @@ fun MapScreen() {
     val malaysiaCenter = remember { GeoPoint(4.2105, 101.9758) }
     val malaysiaZoom = 6.0
 
+    val repository = remember { LocationRepository() }
+    var locations by remember { mutableStateOf<List<Location>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            locations = repository.getAllLocations()
+        } catch (e: Exception) {
+            Log.e("MapScreen", "Failed to load locations", e)
+        }
+    }
+
+    val markers = remember(locations) {
+        locations
+            .filter { it.latitude != null && it.longitude != null }
+            .map { MapMarker(it.name, it.latitude!!, it.longitude!!) }
+    }
+
+
     Box(modifier = Modifier.fillMaxSize()) {
         OsmMapView(
-            markers = listOf(
-                MapMarker("Puchong", 2.9823, 101.5678),
-                MapMarker("Cyberjaya", 2.9213, 101.6559),
-                MapMarker("Cheras", 3.1073, 101.7414),
-                MapMarker("Kajang", 2.9931, 101.7874)
-            ),
+            markers = markers,
             onMapReady = { mapView = it }
         )
 
@@ -138,10 +156,6 @@ fun SimpleSearchBar(
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    // Controls expansion state of the search bar
-    // Removed for direct passing for testing
-    //var expanded by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier
