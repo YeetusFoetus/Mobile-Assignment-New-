@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.roamablenew.R
 //import com.example.romable_sms.entities.EmergencyContact
 import com.example.roamablenew.sos.model.EmergencyContact
 import io.github.jan.supabase.createSupabaseClient
