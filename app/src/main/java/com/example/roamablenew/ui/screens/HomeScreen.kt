@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
@@ -58,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamablenew.data.Location
 import com.example.roamablenew.data.LocationRepository
 import com.example.roamablenew.navigation.Destination
+import com.example.roamablenew.sos.navigation.SOSNavigationGraph
 import com.example.roamablenew.viewmodel.UserViewModel
 import com.example.roamablenew.ui.screens.MapMarker
 import org.osmdroid.util.GeoPoint
@@ -297,7 +299,7 @@ fun BottomNavBar(navController: NavController) {
 
 @Composable
 fun SosScreen() {
-    Text("Coming Soon")
+    SOSNavigationGraph(LocalContext.current)
 }
 
 @Composable

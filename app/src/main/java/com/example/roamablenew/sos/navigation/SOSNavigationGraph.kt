@@ -12,7 +12,7 @@ import com.example.roamablenew.sos.EmergencyContactsScreen
 import com.example.roamablenew.sos.SMSScreen
 
 @Composable
-fun AppNavigationGraph(context : Context) {
+fun SOSNavigationGraph(context : Context) {
     // Initialises necessary variables
     var userEmail = "mmelvis627@outlook.com"
     var navController = rememberNavController()
