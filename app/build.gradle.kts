@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.play.services.location)
     implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("io.coil-kt:coil-compose:2.6.0")
 
