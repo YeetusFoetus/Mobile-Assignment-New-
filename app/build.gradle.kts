@@ -59,6 +59,9 @@ dependencies {
     implementation("io.ktor:ktor-client-android:2.3.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
+    // For permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
