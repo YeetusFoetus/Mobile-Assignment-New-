@@ -2,6 +2,10 @@ package com.example.roamablenew.sos.navigation
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,11 +14,12 @@ import androidx.navigation.navArgument
 import com.example.roamablenew.sos.EmergencyContactForm
 import com.example.roamablenew.sos.EmergencyContactsScreen
 import com.example.roamablenew.sos.SMSScreen
+import com.example.roamablenew.viewmodel.UserViewModel
 
 @Composable
-fun SOSNavigationGraph(context : Context) {
+fun SOSNavigationGraph(context : Context, loginSession : UserViewModel) {
     // Initialises necessary variables
-    var userEmail = "mmelvis627@outlook.com"
+    var userEmail by remember { mutableStateOf(loginSession.getEmail()) }
     var navController = rememberNavController()
 
     // Defines the navigation graph for the app
@@ -28,26 +33,18 @@ fun SOSNavigationGraph(context : Context) {
             SMSScreen(navController = navController, userEmail = userEmail,
                 context = context)
         }
-        composable(
-            route = "EmergencyContactsActivity/{userEmail}",
-            arguments = listOf(
-                navArgument("userEmail") {type = NavType.StringType}
-            )
-        ) {
-            backStackEntry ->
-            val args = backStackEntry.arguments
+        composable("EmergencyContactsActivity") {
             EmergencyContactsScreen(
                 navController = navController,
-                userEmail = args?.getString("userEmail") ?: ""
+                userEmail = userEmail
             )
         }
         composable(
-            route = "EmergencyContactForm/{id}/{contactName}/{telephoneNum}/{userEmail}",
+            route = "EmergencyContactForm/{id}/{contactName}/{telephoneNum}",
             arguments = listOf(
                 navArgument("id") {type = NavType.IntType},
                 navArgument("contactName") {type = NavType.StringType},
                 navArgument("telephoneNum") {type = NavType.StringType},
-                navArgument("userEmail") {type = NavType.StringType}
             )
         ) {
             backStackEntry ->
@@ -57,7 +54,7 @@ fun SOSNavigationGraph(context : Context) {
                 id = args?.getInt("id") ?: 0,
                 contactName = args?.getString("contactName") ?: "",
                 telephoneNum = args?.getString("telephoneNum") ?: "",
-                userEmail = args?.getString("userEmail") ?: ""
+                userEmail = userEmail
             )
         }
     }

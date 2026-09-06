@@ -69,7 +69,7 @@ fun MainMenu() {
         ) {
             composable(Destination.MAP.route) { MapScreen(userViewModel) }
             composable(Destination.HELPLINE.route) { HelplineScreen() }
-            composable(Destination.SOS.route) { SosScreen() }
+            composable(Destination.SOS.route) { SosScreen(userViewModel) }
             composable(Destination.PROFILE.route) { ProfileScreen(navController, userViewModel) }
             composable(Destination.LOGIN.route) { LoginScreen(navController, userViewModel) }
             composable(Destination.REGISTER.route) { RegisterScreen(navController, userViewModel) }

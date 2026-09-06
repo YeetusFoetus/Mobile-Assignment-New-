@@ -26,6 +26,7 @@ import android.os.Build
 // Imports necessary libraries that shows a toast
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -66,7 +67,7 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
     var isLoading by remember {mutableStateOf(false)}
     var isSOSButtonPressed by remember {mutableStateOf(false)}
     var emergencyContacts by remember {mutableStateOf<List<EmergencyContact>>(listOf())}
-    var userEmail by remember {mutableStateOf("mmelvis627@outlook.com")}
+    var userEmailState by remember {mutableStateOf(userEmail)}
     val scope = rememberCoroutineScope()
     // Sets the variables for the location services
     var fusedLocationClient : FusedLocationProviderClient
@@ -88,7 +89,7 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
             emergencyContacts = supabase.from("emergency_contacts")
                 .select() { // columns = Columns.list("id", "contactName", "telephoneNum")
                     filter {
-                        eq("userEmail", userEmail)
+                        eq("userEmail", userEmailState)
                     }
                 }.decodeList<EmergencyContact>()
         }
@@ -134,69 +135,80 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
         // Passes in the properties for 'Scaffold'
         modifier = Modifier.fillMaxSize()
     ) { innerPadding -> // Note: 'innerPadding' is essential for the 'Scaffold' widget.
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally, // Note: 'Alignment' for horizontal.
-            verticalArrangement = Arrangement.Center    // Note: 'Arrangement' for vertical.
-        ) {
-            Button(
-                onClick = {
-                    // Sets 'isButtonPressed' to 'true'
-                    isSOSButtonPressed = true
-
-                    // Requests for permissions
-                    locationPermissionsState.launchMultiplePermissionRequest()
-                },
-                enabled = !isLoading,
-                shape = CircleShape,  // Sets the shape of the button to a circle
-                colors = ButtonDefaults.buttonColors(Color.Red),
-                modifier = Modifier
-                    .height(128.dp)
-                    .width(128.dp)
-            ) {
-                // The widgets on the button
-                when {
-                    isLoading ->
-                        CircularProgressIndicator(
-                            color = Color.White
-                        )
-                    else ->
-                        Text(
-                            text = "SOS",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 36.sp,    // Note: Use 'sp' for the size of the text.
-                            textAlign = TextAlign.Center
-                        )
+        when(userEmailState) {
+            "" ->
+                Box(modifier = Modifier
+                    .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sorry, but you need to sign in for using this feature.",
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
-            }
+            else ->
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                        .fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally, // Note: 'Alignment' for horizontal.
+                    verticalArrangement = Arrangement.Center    // Note: 'Arrangement' for vertical.
+                ) {
+                    Button(
+                        onClick = {
+                            // Sets 'isButtonPressed' to 'true'
+                            isSOSButtonPressed = true
 
-            // Adds a space between the button and the text
-            Spacer(modifier = Modifier.height(16.dp))
+                            // Requests for permissions
+                            locationPermissionsState.launchMultiplePermissionRequest()
+                        },
+                        enabled = !isLoading,
+                        shape = CircleShape,  // Sets the shape of the button to a circle
+                        colors = ButtonDefaults.buttonColors(Color.Red),
+                        modifier = Modifier
+                            .height(128.dp)
+                            .width(128.dp)
+                    ) {
+                        // The widgets on the button
+                        when {
+                            isLoading ->
+                                CircularProgressIndicator(
+                                    color = Color.White
+                                )
+                            else ->
+                                Text(
+                                    text = "SOS",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 36.sp,    // Note: Use 'sp' for the size of the text.
+                                    textAlign = TextAlign.Center
+                                )
+                        }
+                    }
 
-            Text(
-                text = "Press this button to send a SMS instantly to your emergency contacts",
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "if your feel your security is threatened.",
-                textAlign = TextAlign.Center
-            )
+                    // Adds a space between the button and the text
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(36.dp))
+                    Text(
+                        text = "Press this button to send a SMS instantly to your emergency contacts",
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "if your feel your security is threatened.",
+                        textAlign = TextAlign.Center
+                    )
 
-            TextButton(
-                onClick = {
-                    //ViewEmergencyContacts()
-                    val userEmail_uri = Uri.encode(userEmail.trim())
-                    navController.navigate("EmergencyContactsActivity/$userEmail")
+                    Spacer(modifier = Modifier.height(36.dp))
+
+                    TextButton(
+                        onClick = {
+                            navController.navigate("EmergencyContactsActivity")
+                        }
+                    ) {
+                        Text("View my emergency contacts →")
+                    }
                 }
-            ) {
-                Text("View my emergency contacts →")
-            }
         }
     }
 }

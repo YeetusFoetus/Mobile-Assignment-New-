@@ -22,6 +22,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +65,8 @@ fun EmergencyContactsScreen(navController : NavHostController, userEmail : Strin
     var emergencyContacts by remember { mutableStateOf<List<EmergencyContact>>(listOf()) }
     var isLoading by remember{mutableStateOf(false)}
     var isUpdated by remember {mutableStateOf(false)}
+    var userEmailState by remember {mutableStateOf(userEmail)}
+    var snackbarHostState by remember { mutableStateOf(SnackbarHostState()) }
     val scope = rememberCoroutineScope()    // used to pass to another relevant composable functions
 
     // Retrieves the emergency contacts from the remote database
@@ -96,6 +100,9 @@ fun EmergencyContactsScreen(navController : NavHostController, userEmail : Strin
 
     // Designs the graphical user interface (GUI)
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         modifier = Modifier.fillMaxWidth(),
         topBar = {
             MediumTopAppBar(
@@ -120,6 +127,16 @@ fun EmergencyContactsScreen(navController : NavHostController, userEmail : Strin
     ) {
         innerPadding ->
         when {
+            userEmailState == "" ->
+                Box(modifier = Modifier
+                    .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sorry, but you need to sign in to continue.",
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             // When 'isLoading' is true
             isLoading -> Box(
                 modifier = Modifier
@@ -157,7 +174,8 @@ fun EmergencyContactsScreen(navController : NavHostController, userEmail : Strin
                         navController = navController,
                         contact = emergencyContact,
                         userEmail = userEmail,
-                        scope = scope
+                        scope = scope,
+                        snackbarHostState = snackbarHostState
                     )
                     when {
                         isUpdated -> refresh()
@@ -169,12 +187,18 @@ fun EmergencyContactsScreen(navController : NavHostController, userEmail : Strin
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LazyColumnItem(navController: NavHostController, scope : CoroutineScope, contact : EmergencyContact, userEmail : String) : Boolean {
+private fun LazyColumnItem(navController: NavHostController, scope : CoroutineScope, contact : EmergencyContact, userEmail : String, snackbarHostState: SnackbarHostState) : Boolean {
     // Initialises mutable state(s)
     var isDropdownMenuExpanded by remember {mutableStateOf(false)}
     var isDeleting by remember {mutableStateOf(false)}
     var deletingContact : EmergencyContact? by remember {mutableStateOf(null)}
     var isRefreshed by remember {mutableStateOf(false)}
+
+    // Defines functions
+    fun showMessage(message : String) {
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
+
     // Shows an alert dialog when an emergency contact is being deleted
     when {
         isDeleting ->
@@ -185,6 +209,8 @@ private fun LazyColumnItem(navController: NavHostController, scope : CoroutineSc
                         try {
                             deleteEmergencyContact(id = deletingContact?.id ?: 0, userEmail = userEmail)
                             isRefreshed = true
+                        } catch(e : Exception) {
+                            showMessage(e.message ?: "Sorry, but we have encountered a problem. Please try again")
                         } finally{
                             deletingContact = null
                             isDeleting = false
@@ -252,7 +278,7 @@ private fun LazyColumnItem(navController: NavHostController, scope : CoroutineSc
                         },
                         text = {Text("Edit")},
                         onClick = {
-                            navController.navigate("EmergencyContactForm/${contact.id}/${contact.contactName}/${contact.telephoneNum}/$userEmail")
+                            navController.navigate("EmergencyContactForm/${contact.id}/${contact.contactName}/${contact.telephoneNum}")
                         }
                     )
                     DropdownMenuItem(
@@ -279,7 +305,7 @@ private fun LazyColumnItem(navController: NavHostController, scope : CoroutineSc
 fun floatingButton_add(navController : NavHostController) {
     FloatingActionButton(
         onClick = {
-            navController.navigate("EmergencyContactForm/0///mmelvis627@outlook.com")
+            navController.navigate("EmergencyContactForm/0//")
         },
     ) {
         Icon(painter = painterResource(id = R.drawable.outline_add_24),

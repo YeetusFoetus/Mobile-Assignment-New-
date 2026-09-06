@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -100,7 +101,7 @@ fun EmergencyContactForm(navController : NavHostController,
             }
             return true
         } catch(e: Exception) {
-            //error = e.message ?: ""
+            showMessage(e.message ?: "Sorry, but we have encountered a problem. Please try again.")
         } finally {
             isLoading = false
         }
@@ -108,6 +109,7 @@ fun EmergencyContactForm(navController : NavHostController,
     }
 
     Scaffold(
+        snackbarHost = {SnackbarHost(hostState = snackbarHostState)},
         modifier = Modifier.fillMaxWidth(),
         topBar = {
             TopAppBar(
@@ -136,6 +138,16 @@ fun EmergencyContactForm(navController : NavHostController,
     ) {
         innerPadding ->
         when {
+            userEmail_state == "" ->
+                Box(modifier = Modifier
+                    .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sorry, but you need to sign in to continue.",
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             isLoading ->
                 Box(
                     modifier = Modifier.fillMaxSize()
