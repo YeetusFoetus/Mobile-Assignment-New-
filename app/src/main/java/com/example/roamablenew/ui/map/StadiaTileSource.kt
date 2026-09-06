@@ -1,7 +1,6 @@
-package com.example.roamablenew.ui.screens
+package com.example.roamablenew.ui.map
 
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-//import org.osmdroid.tileprovider.util.MapTileIndex
 import org.osmdroid.util.MapTileIndex
 
 class StadiaTileSource(private val apiKey: String) : OnlineTileSourceBase(
