@@ -1,33 +1,27 @@
 package com.example.roamablenew.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -35,11 +29,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,15 +46,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.roamablenew.data.Location
-import com.example.roamablenew.data.LocationRepository
+import com.example.roamablenew.data.AccessibilityTagType
 import com.example.roamablenew.navigation.Destination
 import com.example.roamablenew.sos.navigation.SOSNavigationGraph
 import com.example.roamablenew.viewmodel.UserViewModel
-import com.example.roamablenew.ui.screens.MapMarker
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,68 +67,12 @@ fun MainMenu() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            composable(Destination.MAP.route) { MapScreen() }
+            composable(Destination.MAP.route) { MapScreen(userViewModel) }
             composable(Destination.HELPLINE.route) { HelplineScreen() }
             composable(Destination.SOS.route) { SosScreen() }
             composable(Destination.PROFILE.route) { ProfileScreen(navController, userViewModel) }
             composable(Destination.LOGIN.route) { LoginScreen(navController, userViewModel) }
             composable(Destination.REGISTER.route) { RegisterScreen(navController, userViewModel) }
-        }
-    }
-}
-
-@Composable
-fun MapScreen() {
-    val usernameState = rememberTextFieldState(initialText = "")
-    val fruits = listOf("Apple", "Banana", "Cherry")
-    var mapView by remember { mutableStateOf<MapView?>(null) }
-
-    val malaysiaCenter = remember { GeoPoint(4.2105, 101.9758) }
-    val malaysiaZoom = 6.0
-
-    val repository = remember { LocationRepository() }
-    var locations by remember { mutableStateOf<List<Location>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        try {
-            locations = repository.getAllLocations()
-        } catch (e: Exception) {
-            Log.e("MapScreen", "Failed to load locations", e)
-        }
-    }
-
-    val markers = remember(locations) {
-        locations
-            .filter { it.latitude != null && it.longitude != null }
-            .map { MapMarker(it.name, it.latitude!!, it.longitude!!) }
-    }
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        OsmMapView(
-            markers = markers,
-            onMapReady = { mapView = it }
-        )
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            SimpleSearchBar(usernameState, { query -> }, fruits, false, {})
-            Spacer(modifier = Modifier.height(16.dp))
-            TagsRow()
-        }
-
-        FloatingActionButton(
-            onClick = {
-                mapView?.controller?.setZoom(malaysiaZoom)
-                mapView?.controller?.animateTo(malaysiaCenter)
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.MyLocation, contentDescription = "Recenter to Malaysia")
         }
     }
 }
@@ -155,10 +84,10 @@ fun SimpleSearchBar(
     onSearch: (String) -> Unit,
     searchResults: List<String>,
     expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onResultClick: (String) -> Unit = {},
+    onExpandedChange: (Boolean) -> Unit
 ) {
-
     Box(
         modifier
             //.fillMaxSize()
@@ -193,6 +122,7 @@ fun SimpleSearchBar(
                             .clickable {
                                 textFieldState.edit { replace(0, length, result) }
                                 onExpandedChange(false)
+                                onResultClick(result)
                             }
                             .fillMaxWidth()
                     )
@@ -203,31 +133,22 @@ fun SimpleSearchBar(
 }
 
 @Composable
-fun TagsRow() {
-    val widgetList = listOf("Widget 1", "Widget 2", "Widget 3", "Widget 4", "Widget 5", "Widget 6", "Widget 7")
-
+fun TagsRow(selected: Set<String>, onToggle: (String) -> Unit) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(widgetList) { title ->
-            WidgetCard(title = title)
+        items(AccessibilityTagType.entries) { type ->
+            FilterChip(
+                selected = type.name in selected,
+                onClick = { onToggle(type.name) },
+                label = { Text(type.label) },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
         }
-    }
-}
-
-@Composable
-fun WidgetCard(title: String) {
-    Card(
-        modifier = Modifier
-            .width(60.dp)
-            .height(30.dp)
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.padding(horizontal = 0.dp, vertical = 5.dp)
-        )
     }
 }
 
@@ -295,14 +216,4 @@ fun BottomNavBar(navController: NavController) {
             }
         }
     }
-}
-
-@Composable
-fun SosScreen() {
-    SOSNavigationGraph(LocalContext.current)
-}
-
-@Composable
-fun HelplineScreen() {
-    Text("Coming Soon")
 }
