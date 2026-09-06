@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
@@ -47,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamablenew.data.AccessibilityTagType
 import com.example.roamablenew.navigation.Destination
+import com.example.roamablenew.sos.navigation.SOSNavigationGraph
 import com.example.roamablenew.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +69,7 @@ fun MainMenu() {
         ) {
             composable(Destination.MAP.route) { MapScreen(userViewModel) }
             composable(Destination.HELPLINE.route) { HelplineScreen() }
-            composable(Destination.SOS.route) { SosScreen() }
+            composable(Destination.SOS.route) { SosScreen(userViewModel) }
             composable(Destination.PROFILE.route) { ProfileScreen(navController, userViewModel) }
             composable(Destination.LOGIN.route) { LoginScreen(navController, userViewModel) }
             composable(Destination.REGISTER.route) { RegisterScreen(navController, userViewModel) }
