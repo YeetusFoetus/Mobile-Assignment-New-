@@ -1,4 +1,4 @@
-package com.example.roamablenew.ui.screens
+package com.example.roamablenew.ui.map
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -11,17 +11,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.LifecycleEventEffect
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
-
-data class MapMarker(
-    val title: String,
-    val latitude: Double,
-    val longitude: Double
-)
+import kotlin.collections.isNotEmpty
+import kotlin.collections.mapNotNull
+import com.example.roamablenew.data.Location
 
 @Composable
 fun OsmMapView(
@@ -29,8 +25,9 @@ fun OsmMapView(
     latitude: Double = 4.2105,
     longitude: Double = 101.9758,
     zoomLevel: Double = 6.0,
-    markers: List<MapMarker> = emptyList(),
-    onMapReady: (MapView) -> Unit = {}
+    locations: List<Location> = emptyList(),
+    onMapReady: (MapView) -> Unit = {},
+    onMarkerClick: (Location) -> Unit = {}
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
@@ -40,15 +37,18 @@ fun OsmMapView(
         onDispose { mapView.onDetach() }
     }
 
-    LaunchedEffect(markers) {
-        if (!hasCentered && markers.isNotEmpty()) {
+    LaunchedEffect(locations) {
+        if (!hasCentered && locations.isNotEmpty()) {
             mapView.post {
                 if (mapView.width > 0 && mapView.height > 0) {
-                    val bounds = org.osmdroid.util.BoundingBox.fromGeoPoints(
-                        markers.map { GeoPoint(it.latitude, it.longitude) }
-                    )
-                    mapView.zoomToBoundingBox(bounds, false, 100)
-                    hasCentered = true
+                    val points = locations.mapNotNull {
+                        if (it.latitude != null && it.longitude != null)
+                            GeoPoint(it.latitude, it.longitude) else null
+                    }
+                    if (points.isNotEmpty()) {
+                        mapView.zoomToBoundingBox(BoundingBox.fromGeoPoints(points), false, 100)
+                        hasCentered = true
+                    }
                 }
             }
         }
@@ -64,18 +64,24 @@ fun OsmMapView(
                 setVerticalMapRepetitionEnabled(false)
                 minZoomLevel = 5.0
                 controller.setZoom(zoomLevel)
-                controller.setCenter(GeoPoint(latitude, longitude)) // shown briefly while loading
+                controller.setCenter(GeoPoint(latitude, longitude))
             }.also { onMapReady(it) }
         },
         update = { view ->
             view.overlays.clear()
-            markers.forEach { marker ->
-                val osmMarker = Marker(view).apply {
-                    position = GeoPoint(marker.latitude, marker.longitude)
-                    title = marker.title
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            locations.forEach { loc ->
+                if (loc.latitude != null && loc.longitude != null) {
+                    val marker = Marker(view).apply {
+                        position = GeoPoint(loc.latitude, loc.longitude)
+                        title = loc.name
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        setOnMarkerClickListener { _, _ ->
+                            onMarkerClick(loc)
+                            true // consume tap, skip osmdroid's default title bubble
+                        }
+                    }
+                    view.overlays.add(marker)
                 }
-                view.overlays.add(osmMarker)
             }
             view.invalidate()
         }

@@ -1,9 +1,6 @@
 package com.example.roamablenew.data
 
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns
 
 class LocationRepository {
     private val db = SupabaseConfig.client.postgrest
@@ -21,4 +18,17 @@ class LocationRepository {
             AccessibilityTag(locationId = locationId, tagType = tagType, userId = userEmail)
         )
     }
+
+    suspend fun removeTag(locationId: String, tagType: String, userEmail: String) {
+        db.from("accessibility_tags").delete {
+            filter {
+                eq("location_id", locationId)
+                eq("tag_type", tagType)
+                eq("user_id", userEmail)
+            }
+        }
+    }
+
+    suspend fun getAllTags(): List<AccessibilityTag> =
+        db.from("accessibility_tags").select().decodeList()
 }
