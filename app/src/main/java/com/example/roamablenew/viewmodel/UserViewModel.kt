@@ -86,4 +86,8 @@ class UserViewModel : ViewModel() {
             }
         }
     }
+
+    fun getEmail() : String {
+        return currentUser.value?.email ?: ""
+    }
 }
