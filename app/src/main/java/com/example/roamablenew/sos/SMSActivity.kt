@@ -35,6 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +57,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 // Note: 'ComponentActivity()' is important for functions that are related to the 'Android' system.
@@ -68,6 +71,7 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
     var isSOSButtonPressed by remember {mutableStateOf(false)}
     var emergencyContacts by remember {mutableStateOf<List<EmergencyContact>>(listOf())}
     var userEmailState by remember {mutableStateOf(userEmail)}
+    var snackbarHostState by remember {mutableStateOf(SnackbarHostState())}
     val scope = rememberCoroutineScope()
     // Sets the variables for the location services
     var fusedLocationClient : FusedLocationProviderClient
@@ -96,6 +100,11 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
         isLoading = false
     }
 
+    // Defines functions
+    fun showMessage(message : String) {
+        scope.launch { snackbarHostState.showSnackbar(message) }
+    }
+
     LaunchedEffect(Unit) {
         getEmergencyContacts()
     }
@@ -114,9 +123,9 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
                         }
                     }
             } else if(locationPermissionsState.shouldShowRationale) {   // If both location permissions have been denied
-                //"We need your location permissions to know your location."
+                showMessage("We need your location permissions to know your location.")
             } else {
-                //"This feature requires location permissions."
+                showMessage("This feature requires location permissions.")
             }
         } catch(e : SecurityException) {
             //
@@ -133,6 +142,7 @@ fun SMSScreen(navController : NavHostController, userEmail : String, context : C
             )
         },*/
         // Passes in the properties for 'Scaffold'
+        snackbarHost = {SnackbarHost(hostState = snackbarHostState)},
         modifier = Modifier.fillMaxSize()
     ) { innerPadding -> // Note: 'innerPadding' is essential for the 'Scaffold' widget.
         when(userEmailState) {
