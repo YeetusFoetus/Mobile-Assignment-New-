@@ -11,13 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +57,8 @@ fun MapScreen(userViewModel: UserViewModel) {
     var allTags by remember { mutableStateOf<List<AccessibilityTag>>(emptyList()) }
     var selectedTagFilters by remember { mutableStateOf<Set<String>>(emptySet()) }
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var loadError by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
 
     val usernameState = rememberTextFieldState(initialText = "")
     val malaysiaCenter = remember { GeoPoint(4.2105, 101.9758) }
@@ -76,14 +83,6 @@ fun MapScreen(userViewModel: UserViewModel) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        try {
-            locations = repository.getAllLocations()
-        } catch (e: Exception) {
-            Log.e("MapScreen", "Failed to load locations", e)
-        }
-    }
-
     fun refreshTags(locationId: String) {
         scope.launch {
             tags = try { repository.getTagsForLocation(locationId) }
@@ -93,6 +92,17 @@ fun MapScreen(userViewModel: UserViewModel) {
 
     LaunchedEffect(selectedLocation) {
         selectedLocation?.let { refreshTags(it.id)}
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            locations = repository.getAllLocations()
+        } catch (e: Exception) {
+            Log.e("MapScreen", "Failed to load locations", e)
+            loadError = true
+        } finally {
+            isLoading = false
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -148,6 +158,49 @@ fun MapScreen(userViewModel: UserViewModel) {
                 .padding(16.dp)
         ) {
             Icon(Icons.Default.MyLocation, contentDescription = "Recenter to Malaysia")
+        }
+
+        when {
+            isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            loadError -> {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Couldn't load locations")
+                        Text(
+                            "Check your internet connection and try again",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = {
+                            scope.launch {
+                                isLoading = true
+                                loadError = false
+                                try {
+                                    locations = repository.getAllLocations()
+                                } catch (e: Exception) {
+                                    loadError = true
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
+                        }) {
+                            Text("Retry")
+                        }
+                    }
+                }
+            }
         }
     }
 
