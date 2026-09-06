@@ -187,6 +187,11 @@ fun EmergencyContactForm(navController : NavHostController,
                                 showMessage("Sorry, but the contact's name cannot be empty!")
                             } else if(telephoneNum_state.isEmpty()) {
                                 showMessage("Sorry, but the telephone number cannot be empty!")
+                            // Checks whether the telephone number follows an appropriate format
+                            } else if(telephoneNum_state.contains('+')) {
+                                showMessage("Sorry, but you do not need to include a 'plus' sign in your telephone number. :)")
+                            } else if(telephoneNum_state.toLongOrNull() == null) {  // Note: Use 'long' for integers that have more than nine (9) digits.
+                                showMessage("Sorry, but your telephone number should consist of digits only.")
                             } else {
                                 // Submit the data
                                 scope.launch {
