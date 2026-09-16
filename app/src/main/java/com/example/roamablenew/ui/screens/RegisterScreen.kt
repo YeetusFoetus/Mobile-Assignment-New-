@@ -18,10 +18,13 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var disability by remember { mutableStateOf("") }
+
     var nameError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+    var confirmPasswordError by remember { mutableStateOf("") }
     var disabilityError by remember { mutableStateOf(false) }
 
     Column(
@@ -35,10 +38,7 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
         
         OutlinedTextField(
             value = name,
-            onValueChange = { 
-                name = it
-                nameError = false
-            },
+            onValueChange = { name = it; nameError = false },
             label = { Text("User Name") },
             modifier = Modifier.fillMaxWidth(),
             isError = nameError
@@ -51,10 +51,7 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
         
         OutlinedTextField(
             value = email,
-            onValueChange = { 
-                email = it
-                emailError = false
-            },
+            onValueChange = { email = it; emailError = false },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             isError = emailError
@@ -64,13 +61,10 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         OutlinedTextField(
             value = password,
-            onValueChange = { 
-                password = it
-                passwordError = false
-            },
+            onValueChange = { password = it; passwordError = false },
             label = { Text("Password") },
             modifier = Modifier.fillMaxWidth(),
             isError = passwordError
@@ -80,14 +74,24 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
         }
 
         Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it; confirmPasswordError = "" },
+            label = { Text("Confirm Password") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = confirmPasswordError.isNotEmpty()
+        )
+        if (confirmPasswordError.isNotEmpty()) {
+            Text(confirmPasswordError, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start).padding(start = 8.dp))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
         
         OutlinedTextField(
             value = disability,
-            onValueChange = { 
-                disability = it
-                disabilityError = false
-            },
-            label = { Text("Disability Type(Example: Visual Impairment)") },
+            onValueChange = { disability = it; disabilityError = false },
+            label = { Text("Disability Type") },
             modifier = Modifier.fillMaxWidth(),
             isError = disabilityError
         )
@@ -102,9 +106,18 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
                 nameError = name.isEmpty()
                 emailError = email.isEmpty()
                 passwordError = password.isEmpty()
+
+                if (confirmPassword.isEmpty()) {
+                    confirmPasswordError = "Please confirm your password"
+                } else if (password != confirmPassword) {
+                    confirmPasswordError = "Passwords do not match"
+                } else {
+                    confirmPasswordError = ""
+                }
+
                 disabilityError = disability.isEmpty()
 
-                if (!nameError && !emailError && !passwordError && !disabilityError) {
+                if (!nameError && !emailError && !passwordError && confirmPasswordError.isEmpty() && !disabilityError) {
                     val newUser = User(name, email, password, disability)
                     viewModel.register(newUser) { success ->
                         if (success) {

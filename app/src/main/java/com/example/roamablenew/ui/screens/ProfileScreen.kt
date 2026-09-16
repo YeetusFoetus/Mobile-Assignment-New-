@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -177,6 +178,12 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf(user.name ?: "") }
     var disability by remember { mutableStateOf(user.disability ?: "") }
     var address by remember { mutableStateOf(user.address ?: "") }
+    
+    // Password edit state
+    var isChangingPassword by remember { mutableStateOf(false) }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -194,6 +201,7 @@ fun EditProfileScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = disability,
             onValueChange = { disability = it },
@@ -201,12 +209,86 @@ fun EditProfileScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = address,
             onValueChange = { address = it },
             label = { Text("Home Address") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Edit Password section
+        if (!isChangingPassword) {
+            OutlinedButton(
+                onClick = { isChangingPassword = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Lock, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Edit Password")
+            }
+        } else {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Update Password", 
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = user.password ?: "",
+                        onValueChange = {}, 
+                        label = { Text("Current Password (Read Only)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = Color.Blue,
+                            disabledBorderColor = Color.Blue.copy(alpha = 0.5f),
+                            disabledLabelColor = Color.Blue.copy(alpha = 0.7f)
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // New password
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it; passwordError = "" },
+                        label = { Text("New Password") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Confirm new password
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it; passwordError = "" },
+                        label = { Text("Confirm New Password") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = passwordError.isNotEmpty()
+                    )
+                    if (passwordError.isNotEmpty()) {
+                        Text(passwordError, color = Color.Red, fontSize = 12.sp)
+                    }
+                    
+                    TextButton(
+                        onClick = { 
+                            isChangingPassword = false 
+                            newPassword = "" 
+                            confirmPassword = "" 
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Cancel Update")
+                    }
+                }
+            }
+        }
         
         Spacer(modifier = Modifier.height(24.dp))
         
@@ -215,10 +297,21 @@ fun EditProfileScreen(
                 Text("Cancel")
             }
             Button(onClick = {
-                val updated = User(name, user.email, user.password, disability, address)
-                onSave(updated)
+                if (isChangingPassword) {
+                    if (newPassword.isEmpty()) {
+                        passwordError = "New password cannot be empty"
+                    } else if (newPassword != confirmPassword) {
+                        passwordError = "Passwords do not match"
+                    } else {
+                        val updated = User(name, user.email, newPassword, disability, address)
+                        onSave(updated)
+                    }
+                } else {
+                    val updated = User(name, user.email, user.password, disability, address)
+                    onSave(updated)
+                }
             }) {
-                Text("Save")
+                Text("Save All Changes")
             }
         }
     }
