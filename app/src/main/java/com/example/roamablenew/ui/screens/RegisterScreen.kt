@@ -20,7 +20,6 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var disability by remember { mutableStateOf("") }
-
     var nameError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
